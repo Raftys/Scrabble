@@ -26,10 +26,11 @@ class SakClass:
     def __init__(self):
         self.count_letters = 104
         self.letters = []
+        self.words = []
 
     '''
     Διαβάζω όλα τα στοιχεία για όλα τα γράμματα του ελληνικού αλφαβήτου, 
-    μέσα από ένα αρχείο κειμένου. Δηλάδη, το γράμμα, τις φορές που θα 
+    μέσα από ένα αρχείο κειμένου. Δηλαδή, το γράμμα, τις φορές που θα 
     υπάρχει μέσα στο σακουλάκι και τους πόντους που δίνει. 
     '''
 
@@ -88,6 +89,16 @@ class SakClass:
         for i in range(size):
             if letter == self.letters[i].letter:
                 return i
+
+    '''
+    Διαβάζει όλες τις αποδεκτές λέξεις από το αρχείο και τις αποθηκεύει σε μία λίστα
+    '''
+
+    def set_words(self):
+        file = open("greek7.txt", encoding='utf-8')
+        files = file.readlines()
+        for line in files:
+            self.words.append(line.strip())
 
 
 '''
@@ -197,18 +208,17 @@ class Player:
     '''
     έλεγχος αν η λέξη είναι αποδεκτή
     '''
-    def word_exist(self):
-        file = open("greek7.txt", encoding='utf-8')
-        files = file.readlines()
-        for line in files:
-            if line.strip() == self.word:
+
+    def word_exist(self, sak):
+        for word in range(sak.words):
+            if word == self.word:
                 return True
         return False
 
 
 '''
 Η κλάση Human, αποτελεί προέκταση της Player. Υλοποιεί κάποιες βασικές μεθόδους που 
-πρόκειται να χρειαστεί ο άνθρπωπος-παίκτης.
+πρόκειται να χρειαστεί ο άνθρωπος-παίκτης.
 '''
 
 
@@ -238,9 +248,9 @@ class Human(Player):
         return True
 
     '''
-    Ο τρόπος με τον οποίο παίζει ο ανθρωπος. Αρχικά εκτυπώνεται το όνομα και το σκόρ του.
+    Ο τρόπος με τον οποίο παίζει ο άνθρωπος. Αρχικά εκτυπώνεται το όνομα και το σκορ του.
     Στην συνέχεια εκτυπώνονται τα διαθέσιμα γράμματα και ο παίκτης δίνει την λέξη με την 
-    οποία θέλει να παίξει. Μπορεί να πληκτρολογίση "Π" για να πάει πάσο.
+    οποία θέλει να παίξει. Μπορεί να πληκτρολογήσει "Π" για να πάει πάσο.
     '''
 
     def play(self, sak):
@@ -253,7 +263,7 @@ class Human(Player):
                 self.word = "Π"
                 print("Pass")
                 break
-            elif self.check() and self.word_exist():
+            elif self.check() and self.word_exist(sak):
                 break
             else:
                 print("Χρησιμοποίησε μόνο τα γράμματα που διαθέτεις και σχημάτισε μια αποδεκτή λέξη!")
@@ -289,7 +299,7 @@ class Computer(Player):
         return True
 
     '''
-    δημιουργεί όλους τους πιθανούς συνδιασμούς λέξεων με N γράμματα.
+    δημιουργεί όλους τους πιθανούς συνδυασμούς λέξεων με N γράμματα.
     '''
 
     def generate_words(self, n, sak):
@@ -303,9 +313,9 @@ class Computer(Player):
                         self.word += self.list[j]
                         count_letters += 1
                     if count_letters == n:
-                        if self.word_exist() and self.algorithm == "smart":
+                        if self.word_exist(sak) and self.algorithm == "smart":
                             temp.append([self.word, self.calculate_points(sak)])
-                        elif self.word_exist():
+                        elif self.word_exist(sak):
                             return True
                         else:
                             self.word = self.word[:-1]
@@ -365,7 +375,7 @@ class Computer(Player):
         del temp
 
     '''
-    Ο τρόπος με τον οποίο παίζει ο υπολογιστής. Αρχικά εκτυπώνεται το όνομα και το σκόρ του.
+    Ο τρόπος με τον οποίο παίζει ο υπολογιστής. Αρχικά εκτυπώνεται το όνομα και το σκορ του.
     Στην συνέχεια εκτυπώνονται τα διαθέσιμα γράμματα και ο παίκτης δίνει την λέξη με την 
     οποία θέλει να παίξει. Αν δεν μπορεί να σχηματίσει κάποια λέξη, δίνει "Π", για να πάει πάσο.
     '''
@@ -387,7 +397,7 @@ class Computer(Player):
 
 
 '''
-Η κλάση Play,παίζει το παιχνίδι, αφού κάνει κάποιες ορισμένες ρυθμήσεις. Επιπλέον,
+Η κλάση Play,παίζει το παιχνίδι, αφού κάνει κάποιες ορισμένες ρυθμίσεις. Επιπλέον,
 αποθηκεύει τα στοιχεία του παίκτη αφού τελειώσει το παιχνίδι.
 '''
 
@@ -404,6 +414,7 @@ class Game:
     '''
 
     def setup(self):
+        self.sak.set_words()
         self.sak.set_letters()
         self.human.name = input("Όνομα:")
         self.human.list = self.sak.get_letters(7)
@@ -422,9 +433,9 @@ class Game:
         for i in range(len(temp)):
             print("Name:", temp[i][0], "Score:", temp[i][1])
         if temp[0][1] == temp[1][1]:
-            print("Ισσοπαλία!")
+            print("Ισοπαλία!")
         else:
-            print("Ο νικιτής είναι ο:", temp[0][0], "με", temp[0][1], "πόντους!")
+            print("Ο νικητής είναι ο:", temp[0][0], "με", temp[0][1], "πόντους!")
         print("===============Results===============")
         file = open("Score.txt", encoding='utf-8')
         pos = 0
@@ -485,7 +496,7 @@ class Game:
         input("Enter Για Συνέχεια\n")
 
     '''
-    παίζουμεεεε :)
+    παίζουμε :)
     Αν υπάρχουν λιγότερα από 10 γράμματα στο σακουλάκι και κανέναν από τους 2 παίκτες δεν
     μπορεί να σχηματίσει λέξη, το παιχνίδι τελειώνει.
     '''
@@ -501,7 +512,7 @@ class Game:
                 round_to_end += 1
             else:
                 round_to_end = 0
-            if self.sak.count_letters < 10 and round_to_end == 3 and self.human.word == "Π" and self.computer.word == "Π":
+            if self.sak.count_letters < 10 and round_to_end == 3 and self.human.word == "Π" and \
+                    self.computer.word == "Π":
                 break
         self.end()
-
